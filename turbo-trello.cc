@@ -313,7 +313,17 @@ void report(const Project &toDoList){
 		if(l.tasks.size()>0){
 			for(size_t j = 0;j<l.tasks.size();j++){
 				Task t = l.tasks.at(j);
-				cout << "[" << (t.isDone?'X' : ' ') << "] (" << t.time << ") " << t.deadline.year << "-" << t.deadline.month << "-" << t.deadline.day << " : " << t.name << endl;
+				if(!(t.isDone)){
+					cout << "[" << (t.isDone?'X' : ' ') << "] (" << t.time << ") " << t.deadline.year << "-" << t.deadline.month << "-" << t.deadline.day << " : " << t.name << endl;
+				}
+				
+			}
+			for(size_t j = 0;j<l.tasks.size();j++){
+				Task t = l.tasks.at(j);
+				if(t.isDone){
+					cout << "[" << (t.isDone?'X' : ' ') << "] (" << t.time << ") " << t.deadline.year << "-" << t.deadline.month << "-" << t.deadline.day << " : " << t.name << endl;
+				}
+				
 			}
 		}
 	}
