@@ -253,7 +253,9 @@ void addTask(Project &toDoList){
 	string expected_time;
 	cout<<"Enter expected time: ";
 	getline(std::cin,expected_time);
-	unsigned int exp_time = stoi(expected_time);
+	unsigned int exp_time=0;
+	if(__cplusplus == 201103L) exp_time = stoi(expected_time.c_str());
+	else exp_time = atoi(expected_time.c_str());
 	if(exp_time < 1 || exp_time > 180){ error(ERR_TIME); return;}
 	toDoList.lists.at(index).tasks.push_back(new_Task(name, d, exp_time));
 }
