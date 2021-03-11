@@ -2,6 +2,7 @@
 #include <vector>
 #include <cstdlib>
 #include <string>
+#include <cstring>
 
 using namespace std;
 
@@ -85,12 +86,13 @@ unsigned int ctoi(const char &c){
 bool isValidDate(const unsigned int &d,const unsigned int &m,const unsigned int &y){
 	bool valid = false;
 	const unsigned int diasxmes[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
-    if(m>=1 && m<=12) valid = true; 
-	if(y>=2000 && y<=2100) valid = true;
-	if(y%100==0 && y%400==0 && d>0 && d<=(diasxmes[m-1]+(m==2?1:0)) ) valid=true;
-	else if(y%4==0 && d>0 && d<=(diasxmes[m-1]+(m==2?1:0))) valid=true; 
-	else if(d>0&&d<=diasxmes[m-1]) valid=true;
-	else valid = false;	
+	if(y>=2000 && y<=2100 && m>=1 && m<=12){
+		valid = true;
+		if(y%100==0 && y%400==0 && d>0 && d<=(diasxmes[m-1]+(m==2?1:0)) ) valid=true;
+		else if(y%4==0 && d>0 && d<=(diasxmes[m-1]+(m==2?1:0))) valid=true; 
+		else if(d>0&&d<=diasxmes[m-1]) valid=true;
+		else valid = false;
+	}
 	return valid;
 }
 
@@ -99,7 +101,9 @@ bool isValidDate(const Date &d){
 }
 
 Date new_Date(const unsigned int &d,const unsigned int &m,const unsigned int &y){
-	if(!isValidDate(d,m,y)){ error(ERR_DATE);}
+	if(isValidDate(d,m,y)==false){
+	 Date D; D.day = 31, D.month = 12; D.year = 1999; return D;
+	}
 	Date D;
 	D.day = (int)d;
 	D.month = (int)m;
@@ -125,22 +129,21 @@ Date new_Date(const string &date_str){
 	unsigned int d = 0;
 	unsigned int m = 0;
 	unsigned int y = 0;
-	int i = -1;
-	while(i++<2){
-		if(date_str[i]=='/')  // asumimos que siempre vamos a tener el mismo separador
-			break;
-		d=d*10 + ctoi(date_str[i]);
+	size_t size = date_str.length()+1;
+	char* arr = new char[size];
+	strncpy(arr, date_str.c_str(), size);
+	int fecha_numerica[3];
+	char* toks;
+	unsigned short i=0;
+	while((toks=(strsep(&arr," /\0")))!=NULL){
+		for(size_t j=0;j<strlen(toks);j++){
+			if(toks[j]=='-'){ break;} 
+		}
+		fecha_numerica[i++] = atoi(toks);
 	}
-	while(i++<4){
-		if(date_str[i]=='/')  // asumimos que siempre vamos a tener el mismo separador
-			break;
-		m=m*10 + ctoi(date_str[i]);
-	}
-	while(i++<8){
-		if(date_str[i]=='/')  // asumimos que siempre vamos a tener el mismo separador
-			break;
-		y=y*10 + ctoi(date_str[i]);
-	}
+	d = fecha_numerica[0];
+	m = fecha_numerica[1];
+	y = fecha_numerica[2];
 	return new_Date(d,m,y);
 }
 
@@ -249,15 +252,22 @@ void addTask(Project &toDoList){
 	cout<<"Enter deadline: ";
 	getline(std::cin,deadline);
 	Date d = new_Date(deadline);
-	if(!isValidDate(d)) return;
+	if(isValidDate(d)==false){ error(ERR_DATE); return;}
 	string expected_time;
 	cout<<"Enter expected time: ";
 	getline(std::cin,expected_time);
-	unsigned int exp_time=0;
-	if(__cplusplus == 201103L) exp_time = stoi(expected_time.c_str());
-	else exp_time = atoi(expected_time.c_str());
-	if(exp_time < 1 || exp_time > 180){ error(ERR_TIME); return;}
-	toDoList.lists.at(index).tasks.push_back(new_Task(name, d, exp_time));
+	if(expected_time.empty()) {
+		error(ERR_TIME);
+	}else{
+		unsigned int exp_time=0;
+		#if __cplusplus == 201103L
+		 exp_time = stoi(expected_time);
+		#else
+		 exp_time = atoi(expected_time.c_str());
+		#endif
+		if(exp_time < 1 || exp_time > 180){ error(ERR_TIME); return;}
+		toDoList.lists.at(index).tasks.push_back(new_Task(name, d, exp_time));
+	}
 }
 
 void deleteTask(Project &toDoList){
@@ -352,7 +362,7 @@ void report(const Project &toDoList){
 	}
 	cout << "Total done: " << total_done << " (" << total_done_counter << " minutes)" <<endl;
 
-	Task highest_priority = new_Task("youngest trackable task",new_Date(31,12,2100),180);
+	Task highest_priority = new_Task("youngest trackable task",new_Date(32,13,2101),180);
 	if(toDoList.lists.size()>0 && total_left>0){
 		for(size_t i=0;i<toDoList.lists.size();i++){
 			for(size_t j=0;j<toDoList.lists.at(i).tasks.size();j++){
